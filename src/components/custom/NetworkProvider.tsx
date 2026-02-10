@@ -50,7 +50,7 @@ export default function NetworkProvider({ children }: { children: React.ReactNod
         </button>
 
         {!isOnline && (
-          <div className="fixed top-0 left-0 w-full bg-red-600 text-white text-center text-xs font-bold py-1 z-[100] animate-in slide-in-from-top">
+          <div className="fixed top-0 left-0 w-full bg-red-600 text-white text-center text-xs font-bold py-1 z-100 animate-in slide-in-from-top">
             OFFLINE MODE ACTIVE | LOW BANDWIDTH PROTOCOL | SMS ONLY
           </div>
         )}

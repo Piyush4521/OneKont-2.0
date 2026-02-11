@@ -5,6 +5,10 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import type { Hospital, Incident, Shelter, Volunteer } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const sosIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
@@ -51,6 +55,8 @@ const hospitalIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+const RESYNC_MS = 60000;
+
 function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
@@ -59,30 +65,37 @@ function MapUpdater({ center }: { center: [number, number] }) {
   return null;
 }
 
-const incidents = [
-  { id: 1, type: "Flood", lat: 17.665, lng: 75.91, severity: "Critical", description: "Water entering homes", verified: true, panic: 0.85 },
-  { id: 2, type: "Fire", lat: 17.645, lng: 75.89, severity: "High", description: "Near Railway Station", verified: true, panic: 0.7 },
-  { id: 3, type: "Collapse", lat: 17.652, lng: 75.915, severity: "Medium", description: "Old Bridge strain", verified: false, panic: 0.5 },
-];
+const applyRealtimeChange = <T extends { id: number }>(
+  prev: T[],
+  payload: RealtimePostgresChangesPayload<T>
+) => {
+  if (payload.eventType === "DELETE") {
+    const removed = payload.old as T;
+    return prev.filter((item) => item.id !== removed.id);
+  }
 
-const volunteers = [
-  { id: 1, name: "Team Alpha", lat: 17.655, lng: 75.9, status: "Moving", eta: "5 mins" },
-  { id: 2, name: "Team Bravo", lat: 17.662, lng: 75.897, status: "Staged", eta: "10 mins" },
-];
+  const next = payload.new as T;
+  if (!next?.id) return prev;
 
-const shelters = [
-  { id: 1, name: "Shelter #4", lat: 17.672, lng: 75.919, capacity: "140 beds" },
-  { id: 2, name: "Relief Camp North", lat: 17.646, lng: 75.905, capacity: "95 beds" },
-];
+  const index = prev.findIndex((item) => item.id === next.id);
+  if (index === -1) return [next, ...prev];
 
-const hospitals = [
-  { id: 1, name: "Civil Hospital", lat: 17.657, lng: 75.925, capacity: "ER 24x7" },
-  { id: 2, name: "Rural Health Center", lat: 17.635, lng: 75.885, capacity: "On call" },
-];
+  const updated = [...prev];
+  updated[index] = next;
+  return updated;
+};
 
-export default function MapClient() {
+type MapClientProps = {
+  className?: string;
+};
+
+export default function MapClient({ className }: MapClientProps) {
   const [position, setPosition] = useState<[number, number]>([17.6599, 75.9064]);
   const [layerMode, setLayerMode] = useState<"live" | "sentiment">("live");
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [shelters, setShelters] = useState<Shelter[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const tileUrl = isDark
@@ -93,8 +106,82 @@ export default function MapClient() {
     id: incident.id,
     lat: incident.lat,
     lng: incident.lng,
-    intensity: incident.panic,
+    intensity: typeof incident.panic === "number" ? incident.panic : 0.6,
   }));
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    let active = true;
+
+    const load = async () => {
+      try {
+        const [incRes, volRes, shelterRes, hospRes] = await Promise.all([
+          fetch("/api/incidents", { cache: "no-store" }),
+          fetch("/api/volunteers", { cache: "no-store" }),
+          fetch("/api/shelters", { cache: "no-store" }),
+          fetch("/api/hospitals", { cache: "no-store" }),
+        ]);
+
+        if (!active) return;
+
+        if (incRes.ok) {
+          setIncidents((await incRes.json()) as Incident[]);
+        }
+        if (volRes.ok) {
+          setVolunteers((await volRes.json()) as Volunteer[]);
+        }
+        if (shelterRes.ok) {
+          setShelters((await shelterRes.json()) as Shelter[]);
+        }
+        if (hospRes.ok) {
+          setHospitals((await hospRes.json()) as Hospital[]);
+        }
+      } catch (error) {
+        // Keep last known values on network errors.
+      }
+    };
+
+    load();
+    const interval = window.setInterval(load, RESYNC_MS);
+
+    const channel = supabase
+      .channel("realtime:map")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "incidents" },
+        (payload) => {
+          if (!active) return;
+          setIncidents((prev) =>
+            applyRealtimeChange(prev, payload as RealtimePostgresChangesPayload<Incident>)
+          );
+        }
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "volunteers" }, (payload) => {
+        if (!active) return;
+        setVolunteers((prev) =>
+          applyRealtimeChange(prev, payload as RealtimePostgresChangesPayload<Volunteer>)
+        );
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "shelters" }, (payload) => {
+        if (!active) return;
+        setShelters((prev) =>
+          applyRealtimeChange(prev, payload as RealtimePostgresChangesPayload<Shelter>)
+        );
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "hospitals" }, (payload) => {
+        if (!active) return;
+        setHospitals((prev) =>
+          applyRealtimeChange(prev, payload as RealtimePostgresChangesPayload<Hospital>)
+        );
+      })
+      .subscribe();
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -110,7 +197,12 @@ export default function MapClient() {
   }, []);
 
   return (
-    <div className="h-[80vh] w-full rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl relative z-0">
+    <div
+      className={cn(
+        "w-full h-full rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl relative z-0",
+        className
+      )}
+    >
       <MapContainer center={position} zoom={13} scrollWheelZoom={true} style={{ height: "100%", width: "100%" }}>
         <MapUpdater center={position} />
 

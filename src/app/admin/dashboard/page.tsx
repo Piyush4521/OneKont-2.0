@@ -98,6 +98,12 @@ const sentimentZones = [
   },
 ];
 
+const formatIncidentTime = (value: string) => {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
+
 export default function AdminDashboard() {
   const { incidents, activeVolunteers, verifyIncident } = useDisaster();
   const [playingId, setPlayingId] = useState<number | null>(null);
@@ -167,10 +173,10 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[620px]">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 flex flex-col gap-4">
-              <div className="flex-1 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 relative bg-white dark:bg-slate-950 shadow-2xl">
-                <MapWrapper />
+              <div className="relative">
+                <MapWrapper className="h-[320px] md:h-[420px] lg:h-[520px]" />
                 <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-black/80 p-3 rounded-lg text-xs space-y-1 z-[400] border border-slate-200 dark:border-white/10">
                   <div className="font-bold text-slate-900 dark:text-white mb-1">LIVE FEEDS</div>
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
@@ -204,12 +210,12 @@ export default function AdminDashboard() {
               </Card>
             </div>
 
-            <div className="flex flex-col gap-4 h-full overflow-hidden">
-              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shrink-0 shadow-lg h-[180px]">
+            <div className="flex flex-col gap-4">
+              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg">
                 <CardHeader className="py-3">
                   <CardTitle className="text-xs uppercase text-slate-500 dark:text-slate-400 font-bold">Incoming SOS Volume</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[120px] p-0 pb-2">
+                <CardContent className="h-[160px] p-0 pb-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={impactData}>
                       <defs>
@@ -225,7 +231,7 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              <div className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg">
+              <div className="max-h-[520px] lg:max-h-[560px] overflow-hidden flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg">
                 <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Live Incident Feed</span>
                   <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-green-500 border-emerald-200 dark:border-green-500/20">
@@ -242,7 +248,9 @@ export default function AdminDashboard() {
                           </Badge>
                           <span className="text-xs font-bold text-slate-900 dark:text-white">{inc.location}</span>
                         </div>
-                        <div className="text-[10px] text-slate-500">ID: #{inc.id} | {inc.timestamp}</div>
+                        <div className="text-[10px] text-slate-500">
+                          ID: #{inc.id} | {formatIncidentTime(inc.timestamp)}
+                        </div>
                       </div>
                       {inc.verified ? (
                         <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-green-500/10 dark:text-green-500 dark:border-green-500/20 text-[10px]">Verified</Badge>

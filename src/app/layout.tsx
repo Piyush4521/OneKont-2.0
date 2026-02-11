@@ -44,10 +44,7 @@ export default function RootLayout({
                 
                     <div className="flex min-h-screen">
                         <Sidebar />
-                        <main
-                          className="flex-1 transition-all duration-300"
-                          style={{ marginLeft: "var(--sidebar-width)" }}
-                        >
+                        <main className="flex-1 min-w-0 w-full transition-all duration-300 md:ml-[var(--sidebar-width)]">
                             {children}
                         </main>
                     </div>

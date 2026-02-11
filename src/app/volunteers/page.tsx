@@ -274,7 +274,7 @@ export default function VolunteersPage() {
         </TabsContent>
 
         <TabsContent value="map" className="h-[500px] mt-4 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 relative bg-white dark:bg-slate-950 animate-in zoom-in-95 fade-in shadow-xl">
-          <MapWrapper />
+          <MapWrapper className="h-full" />
           <div className="absolute top-4 left-4 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 p-3 rounded-lg backdrop-blur-md flex flex-col gap-1 shadow-lg z-[400]">
             <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Destination</div>
             <div className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-1">

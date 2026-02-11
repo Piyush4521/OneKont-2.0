@@ -42,11 +42,11 @@ export default function NetworkProvider({ children }: { children: React.ReactNod
 
         <button
           onClick={toggleNetwork}
-          className={`fixed bottom-4 right-4 z-50 px-4 py-2 rounded-full font-bold shadow-2xl border transition-all
+          className={`fixed bottom-6 md:bottom-8 right-4 md:right-8 z-50 px-3 py-2 rounded-full font-bold shadow-2xl border transition-all w-[170px] md:w-[200px] text-center text-[11px] md:text-xs whitespace-nowrap
             ${isOnline ? "bg-green-500 text-black border-green-400 hover:bg-green-400" : "bg-red-600 text-white border-red-500 animate-pulse"}
           `}
         >
-          {isOnline ? "Network: 5G (Demo)" : "Network: DOWN (Demo)"}
+          {isOnline ? "Network: 5G (Demo)" : "Offline Mode: Exit"}
         </button>
 
         {!isOnline && (

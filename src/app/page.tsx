@@ -30,21 +30,21 @@ export default function Home() {
       <main className="pb-20 relative">
         <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/India_relief_location_map.jpg/600px-India_relief_location_map.jpg')] bg-cover bg-center grayscale mix-blend-overlay"></div>
 
-        <section className="relative py-12 md:py-20 flex flex-col items-center justify-center text-center px-4 overflow-hidden z-10">
+        <section className="relative pt-8 pb-10 md:pt-10 md:pb-14 flex flex-col items-center justify-center text-center px-4 overflow-hidden z-10">
           <Badge className="mb-6 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800 px-4 py-1 shadow-sm">
             <ShieldCheck size={12} className="mr-2" /> OFFICIAL GOVT OF MAHARASHTRA PORTAL
           </Badge>
 
-          <h2 className="text-4xl md:text-7xl font-black tracking-tight mb-6 text-slate-800 dark:text-slate-100 leading-tight">
+          <h2 className="text-3xl md:text-6xl font-black tracking-tight mb-4 text-slate-800 dark:text-slate-100 leading-tight">
             Crisis Response <br className="hidden md:block" /> <span className="text-blue-600 dark:text-blue-500">Unified.</span>
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 max-w-xl mx-auto mb-10 text-lg font-medium">
+          <p className="text-slate-600 dark:text-slate-400 max-w-xl mx-auto mb-6 text-base md:text-lg font-medium">
             Direct link to <span className="font-bold text-slate-900 dark:text-white">District Control Room</span>.
             <br />
             Request help, find shelter, or report damage instantly.
           </p>
 
-          <div className="scale-90 md:scale-110 z-20 drop-shadow-2xl">
+          <div className="scale-95 md:scale-100 z-20 drop-shadow-2xl">
             <SOSButton />
           </div>
           <p className="mt-6 text-xs text-slate-500 dark:text-slate-400 font-mono">
@@ -173,6 +173,7 @@ export default function Home() {
           </div>
         </section>
       </main>
+
     </div>
   );
 }

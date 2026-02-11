@@ -2,7 +2,8 @@ import withPWA from "@ducanh2912/next-pwa";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Your existing config here (if any)
+  // Keep Turbopack config present to avoid Next.js 16 warnings when plugins add webpack config.
+  turbopack: {},
 };
 
 const pwaConfig = withPWA({

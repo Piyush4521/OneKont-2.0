@@ -2,16 +2,10 @@
 
 import { Navigation, XCircle, CheckCircle2, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { MissionProps } from "@/components/custom/MissionCard";
 
 type DispatchOverlayProps = {
-  mission: {
-    id: number;
-    title: string;
-    location: string;
-    distance: string;
-    severity: string;
-    desc: string;
-  } | null;
+  mission: MissionProps | null;
   onAccept: () => void;
   onDecline: () => void;
 };
@@ -45,7 +39,9 @@ export default function DispatchOverlay({ mission, onAccept, onDecline }: Dispat
             <MapPin size={14} className="text-blue-400" /> {mission.location}
           </div>
           <div className="text-xs text-slate-500">Distance: {mission.distance}</div>
-          <p className="text-xs text-slate-600 dark:text-slate-400">{mission.desc}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            {mission.desc ?? "Details incoming from command center."}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">

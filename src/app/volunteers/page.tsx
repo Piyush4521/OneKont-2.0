@@ -9,6 +9,7 @@ import MapWrapper from "@/components/custom/MapWrapper";
 import MissionCard, { MissionProps } from "@/components/custom/MissionCard";
 import DispatchOverlay from "@/components/custom/DispatchOverlay";
 import WalkieTalkiePanel from "@/components/custom/WalkieTalkiePanel";
+import RoleGuard from "@/components/custom/RoleGuard";
 
 type Role = "Police" | "NDRF" | "Doctor" | "NGO";
 
@@ -189,8 +190,9 @@ export default function VolunteersPage() {
   };
 
   return (
-    <div className="pb-24 space-y-6 max-w-md mx-auto md:max-w-5xl p-4 text-slate-900 dark:text-slate-100">
-      <DispatchOverlay mission={dispatchMission} onAccept={handleAcceptDispatch} onDecline={handleDeclineDispatch} />
+    <RoleGuard allow={["volunteer"]}>
+      <div className="pb-24 space-y-6 max-w-md mx-auto md:max-w-5xl p-4 text-slate-900 dark:text-slate-100">
+        <DispatchOverlay mission={dispatchMission} onAccept={handleAcceptDispatch} onDecline={handleDeclineDispatch} />
 
       <div className="bg-white/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -315,6 +317,7 @@ export default function VolunteersPage() {
           <CheckCircle2 /> UPDATE STATUS: SAFE
         </button>
       </div>
-    </div>
+      </div>
+    </RoleGuard>
   );
 }

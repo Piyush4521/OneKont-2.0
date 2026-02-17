@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,21 +25,51 @@ export default function AIReportModal({
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [analysisResult, setAnalysisResult] = useState<null | { type: string; severity: string; confidence: number }>(null);
+  const scanTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsScanning(false);
+      setScanProgress(0);
+      setAnalysisResult(null);
+      if (scanTimerRef.current) {
+        window.clearInterval(scanTimerRef.current);
+        scanTimerRef.current = null;
+      }
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (scanTimerRef.current) {
+        window.clearInterval(scanTimerRef.current);
+        scanTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Simulate the AI Analysis Process
-  const handleFileUpload = (e: any) => {
-    const file = e.target.files[0];
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = "";
 
     // Start Scanning Effect
     setIsScanning(true);
     setScanProgress(0);
 
     // Simulate progress bar filling up
-    const interval = setInterval(() => {
+    if (scanTimerRef.current) {
+      window.clearInterval(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+    scanTimerRef.current = window.setInterval(() => {
       setScanProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(interval);
+          if (scanTimerRef.current) {
+            window.clearInterval(scanTimerRef.current);
+            scanTimerRef.current = null;
+          }
           setIsScanning(false);
           // MOCK AI RESULT (In real app, this comes from Python backend)
           setAnalysisResult({

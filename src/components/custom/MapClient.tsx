@@ -3,12 +3,13 @@
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import type { Hospital, Incident, Shelter, Volunteer } from "@/lib/types";
+import type { Hospital, Shelter, Volunteer } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useDisaster } from "@/context/DisasterContext";
 
 const sosIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
@@ -92,7 +93,7 @@ type MapClientProps = {
 export default function MapClient({ className }: MapClientProps) {
   const [position, setPosition] = useState<[number, number]>([17.6599, 75.9064]);
   const [layerMode, setLayerMode] = useState<"live" | "sentiment">("live");
-  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const { incidents } = useDisaster();
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [shelters, setShelters] = useState<Shelter[]>([]);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
@@ -115,8 +116,7 @@ export default function MapClient({ className }: MapClientProps) {
 
     const load = async () => {
       try {
-        const [incRes, volRes, shelterRes, hospRes] = await Promise.all([
-          fetch("/api/incidents", { cache: "no-store" }),
+        const [volRes, shelterRes, hospRes] = await Promise.all([
           fetch("/api/volunteers", { cache: "no-store" }),
           fetch("/api/shelters", { cache: "no-store" }),
           fetch("/api/hospitals", { cache: "no-store" }),
@@ -124,9 +124,6 @@ export default function MapClient({ className }: MapClientProps) {
 
         if (!active) return;
 
-        if (incRes.ok) {
-          setIncidents((await incRes.json()) as Incident[]);
-        }
         if (volRes.ok) {
           setVolunteers((await volRes.json()) as Volunteer[]);
         }
@@ -146,16 +143,6 @@ export default function MapClient({ className }: MapClientProps) {
 
     const channel = supabase
       .channel("realtime:map")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "incidents" },
-        (payload) => {
-          if (!active) return;
-          setIncidents((prev) =>
-            applyRealtimeChange(prev, payload as RealtimePostgresChangesPayload<Incident>)
-          );
-        }
-      )
       .on("postgres_changes", { event: "*", schema: "public", table: "volunteers" }, (payload) => {
         if (!active) return;
         setVolunteers((prev) =>
@@ -225,7 +212,7 @@ export default function MapClient({ className }: MapClientProps) {
         />
 
         {incidents.map((incident) => (
-          <div key={incident.id}>
+          <Fragment key={incident.id}>
             <Marker position={[incident.lat, incident.lng]} icon={sosIcon}>
               <Popup>
                 <div className="text-slate-900">
@@ -246,7 +233,7 @@ export default function MapClient({ className }: MapClientProps) {
               pathOptions={{ fillColor: "red", color: "red", opacity: 0.2, weight: 1 }}
               radius={800}
             />
-          </div>
+          </Fragment>
         ))}
 
         {volunteers.map((team) => (
@@ -302,7 +289,7 @@ export default function MapClient({ className }: MapClientProps) {
           })}
       </MapContainer>
 
-      <div className="absolute top-4 right-4 z-400 bg-white/90 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-xl p-2 backdrop-blur">
+      <div className="absolute top-4 right-4 z-[400] bg-white/90 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-xl p-2 backdrop-blur">
         <div className="text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold mb-2">Layers</div>
         <div className="flex gap-2">
           <button

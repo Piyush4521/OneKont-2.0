@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Mic, Square, Loader2, Send, AlertTriangle, Activity } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -82,10 +82,26 @@ export default function VoiceRecorder({
   const [transcript, setTranscript] = useState("");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const processingTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (processingTimerRef.current) {
+        window.clearTimeout(processingTimerRef.current);
+        processingTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const toggleRecording = () => {
+    if (processingTimerRef.current) {
+      window.clearTimeout(processingTimerRef.current);
+      processingTimerRef.current = null;
+    }
+
     if (!isRecording) {
       setIsRecording(true);
+      setIsProcessing(false);
       setTranscript("");
       setAnalysis(null);
       return;
@@ -94,12 +110,13 @@ export default function VoiceRecorder({
     setIsRecording(false);
     setIsProcessing(true);
 
-    setTimeout(() => {
+    processingTimerRef.current = window.setTimeout(() => {
       const newTranscript =
         "Emergency at Market Yard. Water level rising fast. Need boat immediately.";
       setIsProcessing(false);
       setTranscript(newTranscript);
       setAnalysis(analyzeTranscript(newTranscript));
+      processingTimerRef.current = null;
     }, 1600);
   };
 

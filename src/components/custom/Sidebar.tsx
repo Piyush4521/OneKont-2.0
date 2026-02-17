@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, Map, Users, Activity, Menu, Shield, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, Map, Users, Activity, Menu, Shield, X, LogIn, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils"; // This is a helper from Shadcn
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const navItems = [
   { name: "Home", href: "/", icon: Home },
+  { name: "Login", href: "/login", icon: LogIn },
+  { name: "Profile", href: "/profile", icon: User },
   { name: "Live Map", href: "/map", icon: Map },
   { name: "Command Center", href: "/admin/dashboard", icon: Shield },
   { name: "Volunteers", href: "/volunteers", icon: Users },
@@ -16,8 +19,12 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileRole, setProfileRole] = useState<string | null>(null);
+  const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -41,6 +48,50 @@ export default function Sidebar() {
       root.style.setProperty("--sidebar-width", "0rem");
     };
   }, [isCollapsed]);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    let active = true;
+
+    const loadProfile = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!active) return;
+
+      if (!userData?.user) {
+        setIsAuthed(false);
+        setProfileName(null);
+        setProfileRole(null);
+        return;
+      }
+
+      setIsAuthed(true);
+      const { data } = await supabase.from("profiles").select("full_name, role").eq("id", userData.user.id).single();
+      if (!active) return;
+      setProfileName(data?.full_name ?? userData.user.email ?? "User");
+      setProfileRole(data?.role ?? "public");
+    };
+
+    loadProfile();
+    const { data: listener } = supabase.auth.onAuthStateChange(() => loadProfile());
+
+    return () => {
+      active = false;
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    const supabase = getSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    setIsMobileOpen(false);
+    router.replace("/login");
+  };
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.href === "/login") return !isAuthed;
+    if (item.href === "/profile") return isAuthed;
+    return true;
+  });
 
   return (
     <>
@@ -70,7 +121,7 @@ export default function Sidebar() {
             </div>
 
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
@@ -95,15 +146,35 @@ export default function Sidebar() {
             </nav>
 
             <div className="p-4 border-t border-slate-200 dark:border-white/10">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-white/5">
-                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-xs font-bold text-black shadow-[0_0_10px_rgba(34,197,94,0.5)]">
-                  ON
+              {isAuthed ? (
+                <div className="flex flex-col gap-3 p-3 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
+                      {profileName?.charAt(0).toUpperCase() ?? "U"}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{profileName ?? "User"}</span>
+                      <span className="text-[10px] text-slate-500 uppercase">{profileRole ?? "public"}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-xs font-bold py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                  >
+                    Logout
+                  </button>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">System Online</span>
-                  <span className="text-[10px] text-green-600 dark:text-green-400">Signal: Strong</span>
+              ) : (
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-white/5">
+                  <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-xs font-bold text-black shadow-[0_0_10px_rgba(34,197,94,0.5)]">
+                    ON
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">System Online</span>
+                    <span className="text-[10px] text-green-600 dark:text-green-400">Signal: Strong</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </aside>
         </div>
@@ -132,7 +203,7 @@ export default function Sidebar() {
 
         {/* Navigation Links */}
         <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
@@ -162,20 +233,37 @@ export default function Sidebar() {
         
         {/* Footer / User Status */}
         <div className="p-4 border-t border-slate-200 dark:border-white/10">
-          <div className={cn(
-              "flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-white/5",
-              isCollapsed && "justify-center"
-          )}>
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-xs font-bold text-black shadow-[0_0_10px_rgba(34,197,94,0.5)]">
-                  ON
-              </div>
-              {!isCollapsed && (
-                  <div className="flex flex-col">
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200">System Online</span>
-                      <span className="text-[10px] text-green-600 dark:text-green-400">Signal: Strong</span>
-                  </div>
-              )}
-          </div>
+          {isAuthed ? (
+            <div className={cn(
+                "flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-white/5",
+                isCollapsed && "justify-center"
+            )}>
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+                    {profileName?.charAt(0).toUpperCase() ?? "U"}
+                </div>
+                {!isCollapsed && (
+                    <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{profileName ?? "User"}</span>
+                        <span className="text-[10px] text-slate-500 uppercase">{profileRole ?? "public"}</span>
+                    </div>
+                )}
+            </div>
+          ) : (
+            <div className={cn(
+                "flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-white/5",
+                isCollapsed && "justify-center"
+            )}>
+                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-xs font-bold text-black shadow-[0_0_10px_rgba(34,197,94,0.5)]">
+                    ON
+                </div>
+                {!isCollapsed && (
+                    <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">System Online</span>
+                        <span className="text-[10px] text-green-600 dark:text-green-400">Signal: Strong</span>
+                    </div>
+                )}
+            </div>
+          )}
         </div>
       </aside>
     </>

@@ -1,6 +1,13 @@
+"use client";
+
 import MapWrapper from "@/components/custom/MapWrapper";
 import VerificationFeed from "@/components/custom/VerificationFeed";
+import { useDisaster } from "@/context/DisasterContext";
 export default function MapPage() {
+   const { incidents, activeVolunteers } = useDisaster();
+   const activeSOS = incidents.filter((incident) => incident.status !== "Resolved").length;
+   const rescued = incidents.filter((incident) => incident.status === "Resolved").length;
+   const teams = activeVolunteers;
    return (
         <div className="space-y-6 h-[calc(100vh-100px)] text-slate-900 dark:text-slate-100"> {/* Set fixed height for layout */}
             <div className="flex justify-between items-center">
@@ -27,15 +34,15 @@ export default function MapPage() {
                     <div className="grid grid-cols-3 gap-4">
                         <div className="p-4 bg-white/80 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 rounded-xl">
                             <h3 className="text-slate-500 dark:text-slate-400 text-xs uppercase">Active SOS</h3>
-                            <p className="text-2xl font-bold text-red-500">12</p>
+                            <p className="text-2xl font-bold text-red-500">{activeSOS}</p>
                         </div>
                         <div className="p-4 bg-white/80 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 rounded-xl">
                             <h3 className="text-slate-500 dark:text-slate-400 text-xs uppercase">Rescued</h3>
-                            <p className="text-2xl font-bold text-green-500">45</p>
+                            <p className="text-2xl font-bold text-green-500">{rescued}</p>
                         </div>
                         <div className="p-4 bg-white/80 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 rounded-xl">
                             <h3 className="text-slate-500 dark:text-slate-400 text-xs uppercase">Teams</h3>
-                            <p className="text-2xl font-bold text-blue-500">8</p>
+                            <p className="text-2xl font-bold text-blue-500">{teams}</p>
                         </div>
                     </div>
                 </div>

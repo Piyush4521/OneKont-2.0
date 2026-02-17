@@ -15,7 +15,7 @@ export default function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen">
       {showSidebar && <Sidebar />}
-      <main className="min-h-screen transition-all duration-300 pl-0 md:pl-(--sidebar-width)">
+      <main className="min-h-screen transition-all duration-300 pl-0 md:pl-[var(--sidebar-width)]">
         {children}
       </main>
       <AIChatBot />

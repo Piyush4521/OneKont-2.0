@@ -28,6 +28,7 @@ import {
 import MapWrapper from "@/components/custom/MapWrapper";
 import ArchiveMapPanel from "@/components/custom/ArchiveMapPanel";
 import { useDisaster } from "@/context/DisasterContext";
+import RoleGuard from "@/components/custom/RoleGuard";
 
 const impactData = [
   { time: "08:00", calls: 12 },
@@ -124,23 +125,24 @@ export default function AdminDashboard() {
   const boatsNeeded = Math.max(2, Math.ceil(criticalCount / 2));
 
   return (
-    <div className="space-y-6 pb-20 p-6 bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100">
-      <div className="flex justify-between items-center bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 backdrop-blur-sm">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-            <Activity className="text-blue-500" /> Solapur District Command Center
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-1">JURISDICTION: SOLAPUR DIVISION | ID: #MH-13-GOV</p>
-        </div>
-        <div className="flex gap-3">
-          <div className="text-right hidden md:block">
-            <div className="text-xs text-slate-500 dark:text-slate-400">System Status</div>
-            <div className="text-sm font-bold text-green-600 dark:text-green-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> ONLINE
+    <RoleGuard allow={["gov"]}>
+      <div className="space-y-6 pb-20 p-6 bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100">
+        <div className="flex justify-between items-center bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 backdrop-blur-sm">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+              <Activity className="text-blue-500" /> Solapur District Command Center
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-1">JURISDICTION: SOLAPUR DIVISION | ID: #MH-13-GOV</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="text-right hidden md:block">
+              <div className="text-xs text-slate-500 dark:text-slate-400">System Status</div>
+              <div className="text-sm font-bold text-green-600 dark:text-green-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> ONLINE
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       <Tabs defaultValue="live" className="w-full space-y-6">
         <TabsList className="grid w-full grid-cols-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 h-12">
@@ -453,6 +455,7 @@ export default function AdminDashboard() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </RoleGuard>
   );
 }

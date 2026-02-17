@@ -110,7 +110,7 @@ export default function AIChatBot() {
               </div>
             </div>
 
-            <ScrollArea className="flex-1 p-4 bg-slate-50 dark:bg-slate-950/50">
+            <ScrollArea className="flex-1 min-h-0 p-4 bg-slate-50 dark:bg-slate-950/50">
               <div className="space-y-4">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex gap-3 ${msg.sender === "user" ? "flex-row-reverse" : "flex-row"}`}>

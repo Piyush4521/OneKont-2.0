@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Sun, Moon, Globe } from "lucide-react";
+import { Sun, Moon, Globe, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -67,6 +67,12 @@ export default function GovHeader() {
                 <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <Link href="/login">
+              <Button variant="outline" className="text-[10px] md:text-xs font-bold h-8 px-3 border-slate-200 dark:border-slate-800">
+                <LogIn size={14} className="mr-2" /> Login
+              </Button>
+            </Link>
 
             <Link href="/admin/dashboard">
               <Button className="bg-blue-700 hover:bg-blue-800 text-white text-[10px] md:text-xs font-bold shadow-md h-8 px-3">

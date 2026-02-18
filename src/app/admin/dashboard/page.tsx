@@ -233,7 +233,6 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              {/* GOD MODE INCIDENT FEED START */}
               <div className="max-h-130 lg:max-h-140 overflow-hidden flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg">
                 <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Live Incident Feed</span>
@@ -252,8 +251,7 @@ export default function AdminDashboard() {
                         }
                       `}
                     >
-                      {/* Urgency Score Bar */}
-                      {inc.urgencyScore !== undefined && (
+                        {inc.urgencyScore !== undefined && (
                         <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg overflow-hidden bg-slate-200 dark:bg-slate-800">
                            <div 
                              className="w-full bg-linear-to-t from-blue-500 to-red-600 transition-all duration-1000"
@@ -269,7 +267,6 @@ export default function AdminDashboard() {
                           </Badge>
                           <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{inc.location}</span>
                           
-                          {/* AI Sentiment Badge */}
                           {inc.sentiment && (
                              <Badge variant="outline" className={`text-[9px] h-4 px-1 uppercase tracking-wider ${
                                 inc.sentiment === "Panicked" ? "text-red-500 border-red-200 bg-red-50 dark:bg-red-900/20" : "text-emerald-500 border-emerald-200"
@@ -280,10 +277,9 @@ export default function AdminDashboard() {
                           )}
                         </div>
                         
-                        {/* Transcription Preview */}
                         {inc.transcription ? (
                           <div className="text-[10px] text-slate-600 dark:text-slate-400 italic bg-white dark:bg-black/20 p-1.5 rounded border border-black/5 dark:border-white/5 mb-1">
-                            "{inc.transcription}"
+                            &quot;{inc.transcription}&quot;
                           </div>
                         ) : (
                           <div className="text-[10px] text-slate-500 mb-1">
@@ -291,7 +287,6 @@ export default function AdminDashboard() {
                           </div>
                         )}
                         
-                        {/* AI Score */}
                         {inc.urgencyScore !== undefined && (
                            <div className="flex justify-between items-center mt-1">
                               <div className="text-[9px] font-mono text-slate-400">
@@ -317,7 +312,6 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               </div>
-              {/* GOD MODE INCIDENT FEED END */}
 
             </div>
           </div>

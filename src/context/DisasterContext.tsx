@@ -51,7 +51,7 @@ export function DisasterProvider({ children }: { children: React.ReactNode }) {
         if (!active || !incRes.ok) return;
         const data = (await incRes.json()) as Incident[];
         setIncidents(data);
-      } catch (error) {
+      } catch {
         // Keep last known values on network errors.
       }
     };
@@ -64,7 +64,7 @@ export function DisasterProvider({ children }: { children: React.ReactNode }) {
         if (typeof data.activeVolunteers === "number") {
           setActiveVolunteers(data.activeVolunteers);
         }
-      } catch (error) {
+      } catch {
         // Keep last known values on network errors.
       }
     };
@@ -112,7 +112,7 @@ export function DisasterProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) return;
       const created = (await res.json()) as Incident;
       setIncidents((prev) => [created, ...prev]);
-    } catch (error) {
+    } catch {
       // ignore
     }
   };
@@ -123,7 +123,7 @@ export function DisasterProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) return;
       const updated = (await res.json()) as Incident;
       setIncidents((prev) => prev.map((inc) => (inc.id === id ? updated : inc)));
-    } catch (error) {
+    } catch {
       // ignore
     }
   };
@@ -134,7 +134,7 @@ export function DisasterProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) return;
       const updated = (await res.json()) as Incident;
       setIncidents((prev) => prev.map((inc) => (inc.id === id ? updated : inc)));
-    } catch (error) {
+    } catch {
       // ignore
     }
   };

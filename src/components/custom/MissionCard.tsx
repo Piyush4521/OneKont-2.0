@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { MapPin, CheckCircle, AlertTriangle, Navigation, CheckCircle2, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -21,14 +20,9 @@ type MissionCardProps = {
 };
 
 export default function MissionCard({ mission, onStatusChange }: MissionCardProps) {
-  const [status, setStatus] = useState(mission.status);
-
-  useEffect(() => {
-    setStatus(mission.status);
-  }, [mission.status]);
+  const status = mission.status;
 
   const updateStatus = (next: MissionProps["status"]) => {
-    setStatus(next);
     onStatusChange?.(mission.id, next);
   };
 
@@ -81,7 +75,7 @@ export default function MissionCard({ mission, onStatusChange }: MissionCardProp
 
           {status !== "completed" && mission.desc && (
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 bg-slate-100 dark:bg-slate-950/50 p-2 rounded border border-slate-200 dark:border-white/5 line-clamp-2">
-              "{mission.desc}"
+              &quot;{mission.desc}&quot;
             </p>
           )}
         </div>

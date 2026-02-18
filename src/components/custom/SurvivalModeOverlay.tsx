@@ -99,12 +99,6 @@ export default function SurvivalModeOverlay({
   }, [open]);
 
   useEffect(() => {
-    if (!open) {
-      setIsWhistling(false);
-    }
-  }, [open]);
-
-  useEffect(() => {
     if (!isWhistling) {
       if (whistleIntervalRef.current) {
         window.clearInterval(whistleIntervalRef.current);
@@ -181,7 +175,7 @@ export default function SurvivalModeOverlay({
         return;
       }
       setStatusMessage("Safe message ready.");
-    } catch (error) {
+    } catch {
       setStatusMessage("Unable to share. Try again.");
     }
   };
@@ -194,7 +188,7 @@ export default function SurvivalModeOverlay({
       } else {
         setStatusMessage("SMS payload ready.");
       }
-    } catch (error) {
+    } catch {
       setStatusMessage("Could not copy SMS payload.");
     }
   };
@@ -285,19 +279,17 @@ export default function SurvivalModeOverlay({
       setIsRecording(true);
       videoRecorder.start();
       audioRecorder.start();
-    } catch (error) {
+    } catch {
       setMediaError("Unable to access camera/microphone. Check permissions.");
       setIsRecording(false);
     }
   };
 
-  useEffect(() => {
-    if (open) {
-      startEvidenceCapture();
-    } else {
-      stopEvidenceCapture();
-    }
-  }, [open]);
+  const handleClose = () => {
+    setIsWhistling(false);
+    stopEvidenceCapture();
+    onClose();
+  };
 
   if (!open) return null;
 
@@ -313,7 +305,7 @@ export default function SurvivalModeOverlay({
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="flex items-center gap-2 text-xs uppercase font-bold tracking-widest border border-white/20 px-4 py-2 rounded-full hover:bg-white/10"
           >
             <X size={14} /> Exit Survival Mode

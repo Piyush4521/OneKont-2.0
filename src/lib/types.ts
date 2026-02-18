@@ -14,13 +14,11 @@ export type Incident = {
   verified: boolean;
   description: string;
   panic: number;
-  // WINNER FIELDS (AI Data)
-  urgencyScore?: number;      // Calculated by Triage Algo (0-100)
-  sentiment?: "Panicked" | "Calm" | "Concerned" | "Unknown"; // From Audio AI
-  transcription?: string;     // From Voice Report
+  urgencyScore?: number;
+  sentiment?: "Panicked" | "Calm" | "Concerned" | "Unknown";
+  transcription?: string;
 };
 
-// ... keep your other types (IncidentCreateInput, Volunteer, Shelter, etc.) as they were.
 export type IncidentCreateInput = {
   type: IncidentType;
   location: string;
@@ -29,6 +27,8 @@ export type IncidentCreateInput = {
   severity?: IncidentSeverity;
   description?: string;
   panic?: number;
+  sentiment?: Incident["sentiment"];
+  transcription?: string;
 };
 
 export type Volunteer = {

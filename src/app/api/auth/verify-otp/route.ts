@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       session: data.session,
       userId: data.user.id,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Unable to verify OTP." }, { status: 500 });
   }
 }

@@ -69,7 +69,7 @@ export default function AIChatBot() {
       };
       setMessages((prev) => [...prev, newAiMsg]);
 
-    } catch (err) {
+    } catch {
       // Error handling
     } finally {
       setIsTyping(false);
@@ -93,7 +93,6 @@ export default function AIChatBot() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            // FIX: Changed md:w-100 to md:w-[400px] and h-125 to h-[500px]
             className="fixed bottom-28 right-6 z-50 w-[90vw] md:w-100 h-125 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             <div className="bg-slate-100 dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">

@@ -31,9 +31,12 @@ export default function GovHeader() {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 max-w-7xl mx-auto">
           <div className="flex flex-wrap items-center gap-3 md:gap-6">
             <div className="flex flex-col items-center justify-center">
-              <img
+              <Image
                 src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg"
                 alt="Gov Emblem"
+                width={48}
+                height={48}
+                unoptimized
                 className="h-8 md:h-12 w-auto opacity-90 dark:invert transition-all"
               />
             </div>

@@ -28,11 +28,11 @@ export default function VoiceRecorder({
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
-  
+  const [isSending, setIsSending] = useState(false);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopMedia();
@@ -60,7 +60,7 @@ export default function VoiceRecorder({
       mediaRecorderRef.current.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         await processAudio(blob);
-        stopMedia(); // Ensure stream is closed
+        stopMedia();
       };
 
       mediaRecorderRef.current.start();
@@ -81,13 +81,12 @@ export default function VoiceRecorder({
 
   const processAudio = async (blob: Blob) => {
     setIsProcessing(true);
-    
-    // Convert Blob to Base64
+
     const reader = new FileReader();
     reader.readAsDataURL(blob);
     reader.onloadend = async () => {
       const base64Audio = reader.result as string;
-      
+
       try {
         const res = await fetch("/api/ai/audio", {
           method: "POST",
@@ -105,6 +104,43 @@ export default function VoiceRecorder({
     };
   };
 
+  const handleSendReport = async () => {
+    if (!analysis) return;
+    setIsSending(true);
+
+    try {
+      const panicLevel =
+        analysis.sentiment === "Panicked" ? 0.9 : analysis.sentiment === "Concerned" ? 0.6 : 0.2;
+
+      const res = await fetch("/api/incidents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: analysis.type,
+          location: "Live Voice Report",
+          lat: 17.6599 + Math.random() * 0.01,
+          lng: 75.9064 + Math.random() * 0.01,
+          severity: analysis.priority,
+          description: `Voice Transcript: ${analysis.transcription}`,
+          panic: panicLevel,
+          sentiment: analysis.sentiment,
+          transcription: analysis.transcription,
+        }),
+      });
+
+      if (res.ok) {
+        setIsOpen(false);
+        setAnalysis(null);
+        alert("Emergency report sent successfully.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Failed to send report.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const triggerClasses = cn(
     "flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition border border-white/10 shadow-lg",
     "bg-red-600 text-white hover:bg-red-500",
@@ -112,10 +148,13 @@ export default function VoiceRecorder({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={(val) => {
-      setIsOpen(val);
-      if (!val) stopMedia();
-    }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(val) => {
+        setIsOpen(val);
+        if (!val) stopMedia();
+      }}
+    >
       <DialogTrigger asChild>
         <button className={triggerClasses}>
           <Mic size={18} /> {triggerLabel}
@@ -130,8 +169,6 @@ export default function VoiceRecorder({
         </DialogHeader>
 
         <div className="flex flex-col items-center justify-center py-8 gap-6">
-          
-          {/* Visualizer Circle */}
           <div
             className={`relative flex items-center justify-center w-32 h-32 rounded-full border-4 transition-all duration-300
             ${isRecording ? "border-red-500 bg-red-500/10" : "border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900"}
@@ -140,7 +177,6 @@ export default function VoiceRecorder({
             {isRecording && (
               <>
                 <div className="absolute inset-0 rounded-full border border-red-500 animate-ping opacity-75"></div>
-                {/* Fake Waveform Animation */}
                 <div className="flex gap-1 h-8 items-end">
                   <div className="w-1 bg-red-500 animate-bounce h-4"></div>
                   <div className="w-1 bg-red-500 animate-[bounce_1.2s_infinite] h-8"></div>
@@ -186,7 +222,7 @@ export default function VoiceRecorder({
             {analysis && (
               <div className="space-y-4 animate-in slide-in-from-bottom-2">
                 <div className="p-4 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-sm italic text-slate-600 dark:text-slate-300">
-                  "{analysis.transcription}"
+                  &quot;{analysis.transcription}&quot;
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -200,7 +236,10 @@ export default function VoiceRecorder({
                   <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3">
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Priority</div>
                     <div className="mt-1 font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <Activity size={14} className={analysis.priority === 'Critical' ? "text-red-600 animate-pulse" : "text-yellow-400"} />
+                      <Activity
+                        size={14}
+                        className={analysis.priority === "Critical" ? "text-red-600 animate-pulse" : "text-yellow-400"}
+                      />
                       {analysis.priority}
                     </div>
                   </div>
@@ -222,12 +261,25 @@ export default function VoiceRecorder({
                   </div>
                 </div>
 
-                <Button className="w-full bg-green-600 hover:bg-green-500 font-bold">
-                  <Send className="mr-2" size={18} /> SEND REPORT
+                <Button
+                  onClick={handleSendReport}
+                  disabled={isSending}
+                  className="w-full bg-green-600 hover:bg-green-500 font-bold"
+                >
+                  {isSending ? (
+                    <>
+                      <Loader2 className="mr-2 animate-spin" size={18} /> SENDING PRIORITY ALERT...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2" size={18} /> SEND REPORT
+                    </>
+                  )}
                 </Button>
-                
+
                 <button
                   onClick={() => setAnalysis(null)}
+                  disabled={isSending}
                   className="w-full text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white mt-2"
                 >
                   Record Again

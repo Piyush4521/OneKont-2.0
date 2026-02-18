@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Camera, CheckCircle2, RefreshCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -49,7 +50,7 @@ export default function EvidenceCamDialog({
           await videoRef.current.play();
         }
         setError(null);
-      } catch (err) {
+      } catch {
         setError("Camera access denied or unavailable.");
       }
     };
@@ -62,13 +63,6 @@ export default function EvidenceCamDialog({
         streamRef.current = null;
       }
     };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setSnapshot(null);
-      setError(null);
-    }
   }, [isOpen]);
 
   const capture = async () => {
@@ -92,7 +86,7 @@ export default function EvidenceCamDialog({
         });
       });
       coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    } catch (err) {
+    } catch {
       coords = null;
     }
 
@@ -106,8 +100,16 @@ export default function EvidenceCamDialog({
     onCapture?.(payload);
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    setIsOpen(nextOpen);
+    if (!nextOpen) {
+      setSnapshot(null);
+      setError(null);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <button
           className={cn(
@@ -139,7 +141,14 @@ export default function EvidenceCamDialog({
 
           {snapshot && (
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-100 dark:bg-slate-900">
-              <img src={snapshot.dataUrl} alt="Evidence capture" className="w-full h-40 object-cover" />
+              <Image
+                src={snapshot.dataUrl}
+                alt="Evidence capture"
+                width={640}
+                height={256}
+                unoptimized
+                className="w-full h-40 object-cover"
+              />
               <div className="p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
                 <div>Timestamp: {snapshot.timestamp}</div>
                 <div>

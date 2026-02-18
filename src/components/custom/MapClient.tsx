@@ -62,7 +62,7 @@ function MapUpdater({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
     map.flyTo(center, map.getZoom());
-  }, [center[0], center[1], map]);
+  }, [center, map]);
   return null;
 }
 
@@ -133,7 +133,7 @@ export default function MapClient({ className }: MapClientProps) {
         if (hospRes.ok) {
           setHospitals((await hospRes.json()) as Hospital[]);
         }
-      } catch (error) {
+      } catch {
         // Keep last known values on network errors.
       }
     };

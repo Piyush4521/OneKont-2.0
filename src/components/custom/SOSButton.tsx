@@ -105,12 +105,14 @@ export default function SOSButton() {
         </AnimatePresence>
       </div>
 
-      <SurvivalModeOverlay
-        open={isActive}
-        onClose={() => setIsActive(false)}
-        isOnline={isOnline}
-        location={coords}
-      />
+      {isActive && (
+        <SurvivalModeOverlay
+          open={isActive}
+          onClose={() => setIsActive(false)}
+          isOnline={isOnline}
+          location={coords}
+        />
+      )}
     </div>
   );
 }

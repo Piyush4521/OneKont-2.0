@@ -133,7 +133,7 @@ export default function Home() {
                         Food Supply Chain Restored
                       </h4>
                       <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                        Local NGO "Seva Sankalp" delivered 500 packets to Shelter #4 using the volunteer route map.
+                        Local NGO &quot;Seva Sankalp&quot; delivered 500 packets to Shelter #4 using the volunteer route map.
                       </p>
                     </div>
                   </CardContent>

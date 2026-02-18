@@ -15,11 +15,12 @@ const NetworkContext = createContext<NetworkContextValue>({
 export const useNetwork = () => useContext(NetworkContext);
 
 export default function NetworkProvider({ children }: { children: React.ReactNode }) {
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setIsOnline(navigator.onLine);
 
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);

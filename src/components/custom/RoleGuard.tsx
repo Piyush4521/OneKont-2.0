@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -15,7 +15,6 @@ type RoleGuardProps = {
 export default function RoleGuard({ allow, redirectTo = "/login", children }: RoleGuardProps) {
   const router = useRouter();
   const [status, setStatus] = useState<"checking" | "allowed" | "denied">("checking");
-  const allowKey = useMemo(() => allow.join("|"), [allow]);
 
   useEffect(() => {
     let active = true;
@@ -50,20 +49,15 @@ export default function RoleGuard({ allow, redirectTo = "/login", children }: Ro
       setStatus("allowed");
     };
 
-    setStatus("checking");
-    checkAccess();
+    void checkAccess();
 
     return () => {
       active = false;
     };
-  }, [allowKey, redirectTo, router, allow]);
+  }, [allow, redirectTo, router]);
 
   if (status !== "allowed") {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-sm text-slate-500">
-        Checking access…
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center text-sm text-slate-500">Checking access...</div>;
   }
 
   return <>{children}</>;

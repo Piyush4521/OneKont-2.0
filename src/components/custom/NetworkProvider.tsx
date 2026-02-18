@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState, useSyncExternalStore } from "react";
 
 type NetworkContextValue = {
   isOnline: boolean;
@@ -14,27 +14,41 @@ const NetworkContext = createContext<NetworkContextValue>({
 
 export const useNetwork = () => useContext(NetworkContext);
 
+const subscribeToNetwork = (onStoreChange: () => void) => {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  window.addEventListener("online", onStoreChange);
+  window.addEventListener("offline", onStoreChange);
+
+  return () => {
+    window.removeEventListener("online", onStoreChange);
+    window.removeEventListener("offline", onStoreChange);
+  };
+};
+
+const getNetworkSnapshot = () => {
+  if (typeof navigator === "undefined") {
+    return true;
+  }
+  return navigator.onLine;
+};
+
+const getNetworkServerSnapshot = () => true;
+
 export default function NetworkProvider({ children }: { children: React.ReactNode }) {
-  const [isOnline, setIsOnline] = useState(() =>
-    typeof navigator === "undefined" ? true : navigator.onLine
+  const systemIsOnline = useSyncExternalStore(
+    subscribeToNetwork,
+    getNetworkSnapshot,
+    getNetworkServerSnapshot
   );
+  const [networkOverride, setNetworkOverride] = useState<boolean | null>(null);
+  const isOnline = networkOverride ?? systemIsOnline;
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
-
-  const toggleNetwork = () => setIsOnline((prev) => !prev);
+  const toggleNetwork = () => {
+    setNetworkOverride((prev) => (prev === null ? !systemIsOnline : !prev));
+  };
 
   return (
     <NetworkContext.Provider value={{ isOnline, toggleNetwork }}>

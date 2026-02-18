@@ -3,8 +3,13 @@ import { getSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
-  const id = Number(params?.id);
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function POST(_req: Request, { params }: RouteContext) {
+  const { id: idParam } = await params;
+  const id = Number(idParam);
 
   if (!Number.isFinite(id)) {
     return NextResponse.json({ error: "Invalid incident id" }, { status: 400 });

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -289,7 +289,7 @@ export default function MapClient({ className }: MapClientProps) {
           })}
       </MapContainer>
 
-      <div className="absolute top-4 right-4 z-[400] bg-white/90 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-xl p-2 backdrop-blur">
+      <div className="absolute top-4 right-4 z-400 bg-white/90 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-xl p-2 backdrop-blur">
         <div className="text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold mb-2">Layers</div>
         <div className="flex gap-2">
           <button

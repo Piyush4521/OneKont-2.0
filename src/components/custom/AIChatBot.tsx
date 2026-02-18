@@ -39,6 +39,7 @@ export default function AIChatBot() {
   const handleSend = async (text: string) => {
     if (!text.trim()) return;
 
+    // 1. Show user message immediately
     const newUserMsg: Message = {
       id: Date.now(),
       text,
@@ -49,33 +50,30 @@ export default function AIChatBot() {
     setInputValue("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      let aiResponseText = "I am connecting to the emergency database...";
-
-      const lowerText = text.toLowerCase();
-      if (lowerText.includes("bleed")) {
-        aiResponseText =
-          "STOP BLEEDING:\n1. Apply direct pressure on the wound with a clean cloth.\n2. Keep pressure for 10-15 mins.\n3. Elevate the injury above the heart if possible.\n4. Do NOT remove the cloth if soaked, add more on top.";
-      } else if (lowerText.includes("cpr")) {
-        aiResponseText =
-          "CPR GUIDE:\n1. Push hard and fast in the center of the chest.\n2. Aim for 100-120 compressions per minute.\n3. Depth: At least 2 inches.\n4. Continue until help arrives.";
-      } else if (lowerText.includes("flood")) {
-        aiResponseText =
-          "FLOOD SAFETY:\n1. Move to higher ground immediately.\n2. Do NOT walk or drive through flowing water.\n3. Stay away from downed power lines.";
-      } else {
-        aiResponseText = "I have logged your request. Please stay calm. Rescue teams are prioritizing your area based on GPS.";
-      }
-
+    try {
+      // 2. Call OUR real API
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      
+      const data = await res.json();
+      
+      // 3. Show Real AI Response
       const newAiMsg: Message = {
         id: Date.now() + 1,
-        text: aiResponseText,
+        text: data.text || "Connection failed.",
         sender: "ai",
         timestamp: new Date(),
       };
-
       setMessages((prev) => [...prev, newAiMsg]);
+
+    } catch (err) {
+      // Error handling
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -95,7 +93,8 @@ export default function AIChatBot() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-28 right-6 z-50 w-[90vw] md:w-[400px] h-[500px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            // FIX: Changed md:w-100 to md:w-[400px] and h-125 to h-[500px]
+            className="fixed bottom-28 right-6 z-50 w-[90vw] md:w-100 h-125 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             <div className="bg-slate-100 dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
               <div className="p-2 bg-blue-600/20 rounded-lg">

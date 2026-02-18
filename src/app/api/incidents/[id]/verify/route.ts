@@ -3,9 +3,8 @@ import { getSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
-  const match = req.url.match(/\/api\/incidents\/([^/]+)\/verify/);
-  const id = Number(match?.[1]);
+export async function POST(_req: Request, { params }: { params: { id: string } }) {
+  const id = Number(params?.id);
 
   if (!Number.isFinite(id)) {
     return NextResponse.json({ error: "Invalid incident id" }, { status: 400 });

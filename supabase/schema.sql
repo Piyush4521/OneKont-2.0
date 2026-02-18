@@ -37,10 +37,38 @@ create table if not exists public.hospitals (
   capacity text not null
 );
 
+create table if not exists public.profiles (
+  id uuid primary key references auth.users on delete cascade,
+  role text not null,
+  full_name text not null,
+  phone text,
+  email text,
+  district text,
+  address text,
+  emergency_contact text,
+  citizen_id text,
+  organization text,
+  role_title text,
+  badge_id text,
+  base_location text,
+  availability text,
+  skills text,
+  equipment text,
+  designation text,
+  department text,
+  employee_id text,
+  jurisdiction text,
+  office_location text,
+  access_code_hash text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.incidents enable row level security;
 alter table public.volunteers enable row level security;
 alter table public.shelters enable row level security;
 alter table public.hospitals enable row level security;
+alter table public.profiles enable row level security;
 
 create policy "public read incidents" on public.incidents
   for select
@@ -57,6 +85,15 @@ create policy "public read shelters" on public.shelters
 create policy "public read hospitals" on public.hospitals
   for select
   using (true);
+
+create policy "profiles read own" on public.profiles
+  for select
+  using (auth.uid() = id);
+
+create policy "profiles update own" on public.profiles
+  for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
 
 alter publication supabase_realtime add table public.incidents;
 alter publication supabase_realtime add table public.volunteers;

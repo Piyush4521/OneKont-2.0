@@ -178,8 +178,8 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 flex flex-col gap-4">
               <div className="relative">
-                <MapWrapper className="h-[320px] md:h-[420px] lg:h-[520px]" />
-                <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-black/80 p-3 rounded-lg text-xs space-y-1 z-[400] border border-slate-200 dark:border-white/10">
+                <MapWrapper className="h-80 md:h-105 lg:h-130" />
+                <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-black/80 p-3 rounded-lg text-xs space-y-1 z-400 border border-slate-200 dark:border-white/10">
                   <div className="font-bold text-slate-900 dark:text-white mb-1">LIVE FEEDS</div>
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> SOS Beacon
@@ -217,7 +217,7 @@ export default function AdminDashboard() {
                 <CardHeader className="py-3">
                   <CardTitle className="text-xs uppercase text-slate-500 dark:text-slate-400 font-bold">Incoming SOS Volume</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[160px] p-0 pb-2">
+                <CardContent className="h-40 p-0 pb-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={impactData}>
                       <defs>
@@ -233,38 +233,92 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              <div className="max-h-[520px] lg:max-h-[560px] overflow-hidden flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg">
+              {/* GOD MODE INCIDENT FEED START */}
+              <div className="max-h-130 lg:max-h-140 overflow-hidden flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg">
                 <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Live Incident Feed</span>
                   <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-green-500 border-emerald-200 dark:border-green-500/20">
-                    REAL-TIME
+                    AI PRIORITY SORTED
                   </Badge>
                 </div>
                 <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
                   {incidents.map((inc) => (
-                    <div key={inc.id} className="bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-200 dark:border-slate-800 flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant={inc.severity === "Critical" ? "destructive" : "default"} className="text-[10px] h-5">
+                    <div 
+                      key={inc.id} 
+                      className={`relative p-3 rounded-lg border flex justify-between items-start transition-all hover:bg-slate-100 dark:hover:bg-slate-900/80
+                        ${inc.severity === "Critical" 
+                          ? "bg-red-50/50 border-red-200 dark:bg-red-900/10 dark:border-red-900/30" 
+                          : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"
+                        }
+                      `}
+                    >
+                      {/* Urgency Score Bar */}
+                      {inc.urgencyScore !== undefined && (
+                        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg overflow-hidden bg-slate-200 dark:bg-slate-800">
+                           <div 
+                             className="w-full bg-linear-to-t from-blue-500 to-red-600 transition-all duration-1000"
+                             style={{ height: `${Math.min(inc.urgencyScore, 100)}%` }}
+                           />
+                        </div>
+                      )}
+
+                      <div className="pl-3 w-full">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <Badge variant={inc.severity === "Critical" ? "destructive" : "default"} className="text-[10px] h-5 shadow-sm">
                             {inc.type}
                           </Badge>
-                          <span className="text-xs font-bold text-slate-900 dark:text-white">{inc.location}</span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{inc.location}</span>
+                          
+                          {/* AI Sentiment Badge */}
+                          {inc.sentiment && (
+                             <Badge variant="outline" className={`text-[9px] h-4 px-1 uppercase tracking-wider ${
+                                inc.sentiment === "Panicked" ? "text-red-500 border-red-200 bg-red-50 dark:bg-red-900/20" : "text-emerald-500 border-emerald-200"
+                             }`}>
+                                {inc.sentiment === "Panicked" && <Flame size={8} className="mr-1 inline" />}
+                                AI: {inc.sentiment}
+                             </Badge>
+                          )}
                         </div>
-                        <div className="text-[10px] text-slate-500">
-                          ID: #{inc.id} | {formatIncidentTime(inc.timestamp)}
-                        </div>
+                        
+                        {/* Transcription Preview */}
+                        {inc.transcription ? (
+                          <div className="text-[10px] text-slate-600 dark:text-slate-400 italic bg-white dark:bg-black/20 p-1.5 rounded border border-black/5 dark:border-white/5 mb-1">
+                            "{inc.transcription}"
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-slate-500 mb-1">
+                            ID: #{inc.id} | {formatIncidentTime(inc.timestamp)}
+                          </div>
+                        )}
+                        
+                        {/* AI Score */}
+                        {inc.urgencyScore !== undefined && (
+                           <div className="flex justify-between items-center mt-1">
+                              <div className="text-[9px] font-mono text-slate-400">
+                                PRIORITY SCORE
+                              </div>
+                              <div className="text-[9px] font-black text-slate-700 dark:text-slate-200">
+                                {inc.urgencyScore.toFixed(0)}/100
+                              </div>
+                           </div>
+                        )}
                       </div>
-                      {inc.verified ? (
-                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-green-500/10 dark:text-green-500 dark:border-green-500/20 text-[10px]">Verified</Badge>
-                      ) : (
-                        <Button size="sm" variant="secondary" className="h-6 text-[10px]" onClick={() => verifyIncident(inc.id)}>
-                          Verify
-                        </Button>
-                      )}
+
+                      <div className="flex flex-col gap-2 items-end ml-2">
+                        {inc.verified ? (
+                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-green-500/10 dark:text-green-500 dark:border-green-500/20 text-[10px] whitespace-nowrap">Verified</Badge>
+                        ) : (
+                          <Button size="sm" variant="secondary" className="h-6 text-[10px] hover:bg-blue-100 dark:hover:bg-blue-900/20" onClick={() => verifyIncident(inc.id)}>
+                            Verify
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
+              {/* GOD MODE INCIDENT FEED END */}
+
             </div>
           </div>
 
@@ -407,7 +461,7 @@ export default function AdminDashboard() {
                 <CardTitle className="text-lg">Economic Impact Analysis</CardTitle>
                 <CardDescription>Breakdown of financial losses by sector</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px]">
+              <CardContent className="h-75">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={damageData}>
                     <XAxis dataKey="category" stroke={axisColor} fontSize={12} />

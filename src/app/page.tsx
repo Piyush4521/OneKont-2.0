@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Megaphone, Heart, Home as HomeIcon, Package, Activity, ShieldCheck, Newspaper, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
+import IoTWaterLevel from "@/components/custom/IoTWaterLevel";
 
 export default function Home() {
   return (
@@ -52,7 +53,9 @@ export default function Home() {
             GPS TRACKING ACTIVE | VOICE RECORDING ENABLED
           </p>
         </section>
-
+         <section className="px-4 max-w-3xl mx-auto mb-12 relative z-30">
+          <IoTWaterLevel />
+         </section>
         <section className="px-4 max-w-6xl mx-auto -mt-4 relative z-20">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
@@ -90,7 +93,7 @@ export default function Home() {
               <div className="space-y-4">
                 <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition cursor-pointer group">
                   <CardContent className="p-4 flex gap-4">
-                    <div className="h-24 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg flex-shrink-0 overflow-hidden relative">
+                    <div className="h-24 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg shrink-0 overflow-hidden relative">
                       <div className="absolute inset-0 bg-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-500">
                         LIVE PHOTO
                       </div>
@@ -114,7 +117,7 @@ export default function Home() {
 
                 <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition cursor-pointer group">
                   <CardContent className="p-4 flex gap-4">
-                    <div className="h-24 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg flex-shrink-0 overflow-hidden relative">
+                    <div className="h-24 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg shrink-0 overflow-hidden relative">
                       <div className="absolute inset-0 bg-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-500">
                         LIVE PHOTO
                       </div>

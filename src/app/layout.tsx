@@ -44,7 +44,7 @@ export default function RootLayout({
                 
                     <div className="flex min-h-screen">
                         <Sidebar />
-                        <main className="flex-1 min-w-0 w-full transition-all duration-300 md:ml-[var(--sidebar-width)]">
+                        <main className="flex-1 min-w-0 w-full transition-all duration-300 md:ml-(--sidebar-width)">
                             {children}
                         </main>
                     </div>

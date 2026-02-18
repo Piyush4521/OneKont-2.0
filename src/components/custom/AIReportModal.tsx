@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Camera, Upload, Bot, AlertTriangle } from "lucide-react";
+import { Camera, Upload, Bot, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -24,64 +24,65 @@ export default function AIReportModal({
   const [isOpen, setIsOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
-  const [analysisResult, setAnalysisResult] = useState<null | { type: string; severity: string; confidence: number }>(null);
-  const scanTimerRef = useRef<number | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<null | { type: string; severity: string; confidence: number; description: string }>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
+  // Reset state when closing
   useEffect(() => {
     if (!isOpen) {
       setIsScanning(false);
       setScanProgress(0);
       setAnalysisResult(null);
-      if (scanTimerRef.current) {
-        window.clearInterval(scanTimerRef.current);
-        scanTimerRef.current = null;
-      }
+      setPreview(null);
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    return () => {
-      if (scanTimerRef.current) {
-        window.clearInterval(scanTimerRef.current);
-        scanTimerRef.current = null;
-      }
-    };
-  }, []);
-
-  // Simulate the AI Analysis Process
-  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    e.target.value = "";
 
-    // Start Scanning Effect
+    // 1. Show Preview immediately
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+      startAnalysis(reader.result as string, file.type);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const startAnalysis = async (base64Image: string, mimeType: string) => {
     setIsScanning(true);
-    setScanProgress(0);
+    setScanProgress(10);
 
-    // Simulate progress bar filling up
-    if (scanTimerRef.current) {
-      window.clearInterval(scanTimerRef.current);
-      scanTimerRef.current = null;
-    }
-    scanTimerRef.current = window.setInterval(() => {
-      setScanProgress((prev) => {
-        if (prev >= 100) {
-          if (scanTimerRef.current) {
-            window.clearInterval(scanTimerRef.current);
-            scanTimerRef.current = null;
-          }
-          setIsScanning(false);
-          // MOCK AI RESULT (In real app, this comes from Python backend)
-          setAnalysisResult({
-            type: "Structural Collapse",
-            severity: "Critical",
-            confidence: 94
-          });
-          return 100;
-        }
-        return prev + 10;
+    // Fake progress bar animation while waiting for API
+    const progressInterval = setInterval(() => {
+      setScanProgress((prev) => (prev < 90 ? prev + 5 : prev));
+    }, 200);
+
+    try {
+      // 2. Call REAL AI Vision API
+      const res = await fetch("/api/ai/vision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64Image, mimeType }),
       });
-    }, 200); // 2 seconds total scan time
+      
+      const data = await res.json();
+      
+      clearInterval(progressInterval);
+      setScanProgress(100);
+      
+      // Short delay to show 100%
+      setTimeout(() => {
+        setIsScanning(false);
+        setAnalysisResult(data);
+      }, 500);
+
+    } catch (error) {
+      setIsScanning(false);
+      // Fallback
+      setAnalysisResult({ type: "Unknown", severity: "Medium", confidence: 0, description: "Connection failed" });
+    }
   };
 
   return (
@@ -97,7 +98,7 @@ export default function AIReportModal({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white sm:max-w-[425px]">
+      <DialogContent className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Bot className="text-blue-500" /> AI Damage Assessment
@@ -129,10 +130,10 @@ export default function AIReportModal({
           {isScanning && (
             <div className="space-y-4 text-center py-8">
               <div className="relative w-32 h-32 mx-auto bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-                 {/* Fake Image Placeholder */}
-                 <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-                    <Camera size={32} className="opacity-20"/>
-                 </div>
+                 {/* Show the actual user image being scanned */}
+                 {preview && (
+                   <img src={preview} className="w-full h-full object-cover opacity-50" alt="Scanning" />
+                 )}
                  
                  {/* The Laser Scanner Effect */}
                  <motion.div 
@@ -140,48 +141,60 @@ export default function AIReportModal({
                     animate={{ top: ["0%", "100%", "0%"] }}
                     transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
                  />
-                 <div className="absolute inset-0 bg-blue-500/10" />
               </div>
 
               <div>
-                <p className="text-blue-400 font-bold animate-pulse text-sm mb-2">ANALYZING PIXELS...</p>
+                <p className="text-blue-500 font-bold animate-pulse text-sm mb-2">GEMINI VISION ANALYZING...</p>
                 <Progress value={scanProgress} className="h-2 bg-slate-200 dark:bg-slate-800" />
               </div>
             </div>
           )}
 
-          {/* 3. AI Result & Form Auto-fill */}
+          {/* 3. AI Result */}
           {analysisResult && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-              {/* The "AI Insight" Card */}
-              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl flex items-start gap-3">
-                <Bot className="text-blue-400 mt-1" size={20} />
+              
+              {/* Verdict Card */}
+              <div className={`border p-4 rounded-xl flex items-start gap-3 ${
+                analysisResult.type === "None" 
+                  ? "bg-slate-100 border-slate-200 dark:bg-slate-900 dark:border-slate-800" 
+                  : "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800"
+              }`}>
+                {analysisResult.type === "None" ? <XCircle className="text-slate-500 mt-1"/> : <CheckCircle2 className="text-blue-500 mt-1" />}
                 <div>
-                    <h4 className="font-bold text-blue-800 dark:text-blue-100">Analysis Complete</h4>
-                    <p className="text-xs text-blue-600/80 dark:text-blue-200/70">Confidence Score: {analysisResult.confidence}%</p>
+                    <h4 className="font-bold text-slate-800 dark:text-slate-200">
+                      {analysisResult.type === "None" ? "No Disaster Detected" : "Incident Verified"}
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      {analysisResult.description}
+                    </p>
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label>Detected Incident Type</Label>
-                <div className="flex items-center gap-2 p-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-red-500 dark:text-red-400 font-bold">
-                    <AlertTriangle size={16} />
-                    {analysisResult.type}
-                </div>
-              </div>
+              {analysisResult.type !== "None" && (
+                <>
+                  <div className="grid gap-2">
+                    <Label>Detected Incident Type</Label>
+                    <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-red-600 dark:text-red-400 font-bold">
+                        <AlertTriangle size={16} />
+                        {analysisResult.type}
+                    </div>
+                  </div>
 
-              <div className="grid gap-2">
-                <Label>Estimated Severity</Label>
-                <Input defaultValue={analysisResult.severity} className="bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 font-bold" readOnly />
-              </div>
+                  <div className="grid gap-2">
+                    <Label>AI Estimated Severity</Label>
+                    <Input defaultValue={analysisResult.severity} className="bg-slate-50 dark:bg-slate-900 font-bold" readOnly />
+                  </div>
+                </>
+              )}
 
-              <div className="grid gap-2">
-                <Label>Add Details (Voice to Text)</Label>
-                <Textarea placeholder="Describe situation..." className="bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 min-h-[80px]" />
-              </div>
-
-              <Button className="w-full bg-red-600 hover:bg-red-500 font-bold py-6">
-                SUBMIT VERIFIED REPORT
+              <Button 
+                className={`w-full font-bold py-6 ${
+                  analysisResult.type === "None" ? "bg-slate-400" : "bg-red-600 hover:bg-red-500"
+                }`}
+                disabled={analysisResult.type === "None"}
+              >
+                {analysisResult.type === "None" ? "CANNOT SUBMIT" : "SUBMIT VERIFIED REPORT"}
               </Button>
             </div>
           )}
